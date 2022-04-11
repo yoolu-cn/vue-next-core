@@ -48,3 +48,7 @@ export function isReactive(value: unknown): boolean {
 export function isShallow(value: unknown): boolean {
     return !!(value && (value as Target)[ReactiveFlags.IS_SHALLOW]);
 }
+
+export function isProxy(value: unknown): boolean {
+    return isReactive(value) || isReadonly(value);
+}
