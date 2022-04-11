@@ -5,16 +5,35 @@ export interface ReactiveEffectOptions {
     scheduler?: EffectScheduler;
     onStop?: () => void;
 }
+export type Dep = Set<ReactiveEffect>;
+type KeyToDepMap = Map<any, Dep>;
+
+let activeEffect: ReactiveEffect | undefined;
+let shouldTrack: boolean;
+
+const targetMap = new Map<any, KeyToDepMap>();
+// const targetMap = new WeakMap();
 
 class ReactiveEffect<T = any> {
-    deps = [];
+    deps: Dep[] = [];
     active = true;
     onStop?: () => void;
     constructor(public fn: () => T, public scheduler?: Function) {}
 
     run() {
+        // 会依赖收集
+        // 使用 shouldTrack 来区分
+        if (!this.active) {
+            return this.fn();
+        }
+        shouldTrack = true;
         activeEffect = this;
-        return this.fn();
+
+        const result = this.fn();
+        // 收集完依赖后 reset 全局变量
+        shouldTrack = false;
+
+        return result;
     }
 
     stop() {
@@ -33,14 +52,19 @@ function clearupEffect(effect: ReactiveEffect) {
         dep.delete(effect);
     });
 }
-let activeEffect: any;
-const targetMap = new Map();
+
+function isTracking(): boolean {
+    return shouldTrack && activeEffect !== undefined;
+}
 export function track(target: any, key: any) {
+    if (!isTracking()) {
+        return;
+    }
+
     let depsMap = targetMap.get(target);
 
     if (!depsMap) {
-        depsMap = new Map();
-        targetMap.set(target, depsMap);
+        targetMap.set(target, (depsMap = new Map()));
     }
 
     let dep = depsMap.get(key);
@@ -48,20 +72,19 @@ export function track(target: any, key: any) {
         dep = new Set();
         depsMap.set(key, dep);
     }
-
-    if (!activeEffect) {
+    if (dep.has(activeEffect!)) {
         return;
     }
 
-    dep.add(activeEffect);
-    activeEffect.deps.push(dep);
+    dep.add(activeEffect!);
+    activeEffect!.deps.push(dep);
 }
 
 export function trigger(target: any, key: any) {
     const depsMap = targetMap.get(target);
-    const dep = depsMap.get(key);
+    const dep = depsMap!.get(key);
 
-    for (let effect of dep) {
+    for (let effect of dep!) {
         if (effect.scheduler) {
             effect.scheduler();
         } else {
