@@ -1,20 +1,50 @@
-import { track, trigger } from './effect';
+import {
+    mutableHandlers,
+    readonlyHandlers,
+    shallowReactiveHandlers,
+    shallowReadonlyHandlers,
+} from './baseHandles';
 
-export function reactive(raw: any) {
-    return new Proxy(raw, {
-        get(target, key) {
-            const res = Reflect.get(target, key);
+export const enum ReactiveFlags {
+    IS_REACTIVE = '__v_isReactive',
+    IS_READONLY = '__v_isReadonly',
+    IS_SHALLOW = '__v_isShallow',
+}
 
-            // 依赖收集
-            track(target, key);
-            return target[key];
-        },
-        set(target, key, value) {
-            const res = Reflect.set(target, key, value);
+export interface Target {
+    [ReactiveFlags.IS_REACTIVE]?: boolean;
+    [ReactiveFlags.IS_READONLY]?: boolean;
+    [ReactiveFlags.IS_SHALLOW]?: boolean;
+}
 
-            // 触发依赖
-            trigger(target, key);
-            return res;
-        },
-    });
+export function reactive(target: object) {
+    return createReactiveObject(target, false, mutableHandlers);
+}
+
+export function readonly(target: object) {
+    return createReactiveObject(target, true, readonlyHandlers);
+}
+
+export function shallowReactive(target: object) {
+    return createReactiveObject(target, false, shallowReactiveHandlers);
+}
+
+export function shallowReadonly(target: object) {
+    return createReactiveObject(target, true, shallowReadonlyHandlers);
+}
+
+function createReactiveObject(target: object, isReadonly = false, baseHandlers: ProxyHandler<any>) {
+    return new Proxy(target, baseHandlers);
+}
+
+export function isReadonly(value: unknown): boolean {
+    return !!(value && (value as Target)[ReactiveFlags.IS_READONLY]);
+}
+
+export function isReactive(value: unknown): boolean {
+    return !!(value && (value as Target)[ReactiveFlags.IS_REACTIVE]);
+}
+
+export function isShallow(value: unknown): boolean {
+    return !!(value && (value as Target)[ReactiveFlags.IS_SHALLOW]);
 }

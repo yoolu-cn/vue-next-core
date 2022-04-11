@@ -1,22 +1,70 @@
+import { extend } from '../shared';
+
+export type EffectScheduler = (...args: any[]) => any;
+export interface ReactiveEffectOptions {
+    scheduler?: EffectScheduler;
+    onStop?: () => void;
+}
+export type Dep = Set<ReactiveEffect>;
+type KeyToDepMap = Map<any, Dep>;
+
+let activeEffect: ReactiveEffect | undefined;
+let shouldTrack: boolean;
+
+const targetMap = new Map<any, KeyToDepMap>();
+// const targetMap = new WeakMap();
+
 class ReactiveEffect<T = any> {
-    private _fn: () => T;
-    constructor(fn: () => T) {
-        this._fn = fn;
-    }
+    deps: Dep[] = [];
+    active = true;
+    onStop?: () => void;
+    constructor(public fn: () => T, public scheduler?: Function) {}
 
     run() {
+        // 会依赖收集
+        // 使用 shouldTrack 来区分
+        if (!this.active) {
+            return this.fn();
+        }
+        shouldTrack = true;
         activeEffect = this;
-        this._fn();
+
+        const result = this.fn();
+        // 收集完依赖后 reset 全局变量
+        shouldTrack = false;
+
+        return result;
+    }
+
+    stop() {
+        if (this.active) {
+            clearupEffect(this);
+            if (this.onStop) {
+                this.onStop();
+            }
+            this.active = false;
+        }
     }
 }
-let activeEffect: any;
-const targetMap = new Map();
+
+function clearupEffect(effect: ReactiveEffect) {
+    effect.deps.forEach((dep: any) => {
+        dep.delete(effect);
+    });
+}
+
+function isTracking(): boolean {
+    return shouldTrack && activeEffect !== undefined;
+}
 export function track(target: any, key: any) {
+    if (!isTracking()) {
+        return;
+    }
+
     let depsMap = targetMap.get(target);
 
     if (!depsMap) {
-        depsMap = new Map();
-        targetMap.set(target, depsMap);
+        targetMap.set(target, (depsMap = new Map()));
     }
 
     let dep = depsMap.get(key);
@@ -24,21 +72,48 @@ export function track(target: any, key: any) {
         dep = new Set();
         depsMap.set(key, dep);
     }
+    if (dep.has(activeEffect!)) {
+        return;
+    }
 
-    dep.add(activeEffect);
+    dep.add(activeEffect!);
+    activeEffect!.deps.push(dep);
 }
 
 export function trigger(target: any, key: any) {
     const depsMap = targetMap.get(target);
-    const dep = depsMap.get(key);
+    const dep = depsMap!.get(key);
 
-    for (let fn of dep) {
-        fn.run();
+    for (let effect of dep!) {
+        if (effect.scheduler) {
+            effect.scheduler();
+        } else {
+            effect.run();
+        }
     }
 }
 
-export function effect<T = any>(fn: () => T) {
+export interface ReactiveEffectRunner<T = any> {
+    (): T;
+    effect: ReactiveEffect;
+}
+
+export function effect<T = any>(
+    fn: () => T,
+    options?: ReactiveEffectOptions
+): ReactiveEffectRunner {
     const _effect = new ReactiveEffect(fn);
 
+    if (options) {
+        extend(_effect, options);
+    }
+
     _effect.run();
+    const runner: any = _effect.run.bind(_effect) as ReactiveEffectRunner;
+    runner.effect = _effect;
+    return runner;
+}
+
+export function stop(runner: ReactiveEffectRunner) {
+    runner.effect.stop();
 }
