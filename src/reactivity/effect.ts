@@ -1,13 +1,37 @@
+import { extend } from '../shared';
+
+export type EffectScheduler = (...args: any[]) => any;
+export interface ReactiveEffectOptions {
+    scheduler?: EffectScheduler;
+    onStop?: () => void;
+}
+
 class ReactiveEffect<T = any> {
-    private _fn: () => T;
-    constructor(fn: () => T, public schedule?: any) {
-        this._fn = fn;
-    }
+    deps = [];
+    active = true;
+    onStop?: () => void;
+    constructor(public fn: () => T, public scheduler?: Function) {}
 
     run() {
         activeEffect = this;
-        return this._fn();
+        return this.fn();
     }
+
+    stop() {
+        if (this.active) {
+            clearupEffect(this);
+            if (this.onStop) {
+                this.onStop();
+            }
+            this.active = false;
+        }
+    }
+}
+
+function clearupEffect(effect: ReactiveEffect) {
+    effect.deps.forEach((dep: any) => {
+        dep.delete(effect);
+    });
 }
 let activeEffect: any;
 const targetMap = new Map();
@@ -25,7 +49,12 @@ export function track(target: any, key: any) {
         depsMap.set(key, dep);
     }
 
+    if (!activeEffect) {
+        return;
+    }
+
     dep.add(activeEffect);
+    activeEffect.deps.push(dep);
 }
 
 export function trigger(target: any, key: any) {
@@ -38,13 +67,30 @@ export function trigger(target: any, key: any) {
         } else {
             effect.run();
         }
-        
     }
 }
 
-export function effect<T = any>(fn: () => T, options: any = {}) {
-    const _effect = new ReactiveEffect(fn, options.scheduler);
+export interface ReactiveEffectRunner<T = any> {
+    (): T;
+    effect: ReactiveEffect;
+}
+
+export function effect<T = any>(
+    fn: () => T,
+    options?: ReactiveEffectOptions
+): ReactiveEffectRunner {
+    const _effect = new ReactiveEffect(fn);
+
+    if (options) {
+        extend(_effect, options);
+    }
 
     _effect.run();
-    return _effect.run.bind(_effect);
+    const runner: any = _effect.run.bind(_effect) as ReactiveEffectRunner;
+    runner.effect = _effect;
+    return runner;
+}
+
+export function stop(runner: ReactiveEffectRunner) {
+    runner.effect.stop();
 }
