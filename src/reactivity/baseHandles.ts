@@ -4,6 +4,7 @@ import { reactive, ReactiveFlags, readonly } from './reactive';
 
 const get = createGetter();
 const readonlyGet = createGetter(true);
+const shallowReactiveGet = createGetter(false, true);
 const shallowReadonlyGet = createGetter(true, true);
 
 const set = createSetter();
@@ -14,6 +15,8 @@ function createGetter(isReadonly = false, isShallow = false) {
             return !isReadonly;
         } else if (key === ReactiveFlags.IS_READONLY) {
             return isReadonly;
+        } else if (key === ReactiveFlags.IS_SHALLOW) {
+            return isShallow;
         }
 
         const res = Reflect.get(target, key);
@@ -60,4 +63,8 @@ export const readonlyHandlers: ProxyHandler<object> = {
 
 export const shallowReadonlyHandlers: ProxyHandler<object> = extend({}, readonlyHandlers, {
     get: shallowReadonlyGet,
+});
+
+export const shallowReactiveHandlers: ProxyHandler<object> = extend({}, mutableHandlers, {
+    get: shallowReactiveGet,
 });

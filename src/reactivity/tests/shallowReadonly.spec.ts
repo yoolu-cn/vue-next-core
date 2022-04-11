@@ -1,9 +1,11 @@
-import { isReactive, isReadonly, readonly, shallowReadonly } from '../reactive';
+import { isReactive, isReadonly, isShallow, readonly, shallowReadonly } from '../reactive';
 
 describe('reactivity/shallowReadonly', () => {
     test('should not make non-reactive properties reactive', () => {
         const props = shallowReadonly({ n: { foo: 1 } });
         expect(isReactive(props.n)).toBe(false);
+        expect(isShallow(props)).toBe(true);
+        expect(isReadonly(props)).toBe(true);
     });
 
     test('should make root level properties readonly', () => {
