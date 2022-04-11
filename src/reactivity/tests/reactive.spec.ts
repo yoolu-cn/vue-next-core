@@ -1,7 +1,7 @@
 import { isReactive, reactive } from '../reactive';
 
-describe('reactive', () => {
-    it('happy path', () => {
+describe('reactivity/reactive', () => {
+    it('should observe basic properties', () => {
         const original = { foo: 1 };
         const observed = reactive(original);
 

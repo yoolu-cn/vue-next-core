@@ -1,8 +1,8 @@
 import { effect, stop } from '../effect';
 import { reactive } from '../reactive';
 
-describe('effect', () => {
-    it('happy path', () => {
+describe('reactivity/effect', () => {
+    it('should observe basic properties', () => {
         const user = reactive({
             age: 10,
         });
@@ -106,5 +106,29 @@ describe('effect', () => {
         stop(runner);
 
         expect(onStop).toBeCalledTimes(1);
+    });
+
+    // it('should observe delete operations', () => {
+    //     let dummy;
+    //     const obj = reactive({ prop: 'value' });
+    //     effect(() => (dummy = obj.prop));
+
+    //     expect(dummy).toBe('value');
+    //     // @ts-ignore
+    //     delete obj.prop;
+    //     expect(dummy).toBe(undefined);
+    // });
+
+    it('should handle multiple effects', () => {
+        let dummy1, dummy2;
+        const counter = reactive({ num: 0 });
+        effect(() => (dummy1 = counter.num));
+        effect(() => (dummy2 = counter.num));
+
+        expect(dummy1).toBe(0);
+        expect(dummy2).toBe(0);
+        counter.num++;
+        expect(dummy1).toBe(1);
+        expect(dummy2).toBe(1);
     });
 });
