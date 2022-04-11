@@ -6,7 +6,7 @@ class ReactiveEffect<T = any> {
 
     run() {
         activeEffect = this;
-        this._fn();
+        return this._fn();
     }
 }
 let activeEffect: any;
@@ -41,4 +41,5 @@ export function effect<T = any>(fn: () => T) {
     const _effect = new ReactiveEffect(fn);
 
     _effect.run();
+    return _effect.run.bind(_effect);
 }

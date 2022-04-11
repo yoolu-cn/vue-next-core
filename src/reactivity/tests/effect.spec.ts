@@ -18,4 +18,21 @@ describe('effect', () => {
         user.age++;
         expect(nextAge).toBe(12);
     });
+
+    it('should return runner when call effect', () => {
+        /**
+         * effect(fn) 返回一个 function runner 
+         * function runner 调用执行 fn 返回 return
+         */
+        let foo = 10;
+        const runner = effect(() => {
+            foo++;
+            return 'foo';
+        });
+
+        expect(foo).toBe(11);
+        let r = runner();
+        expect(foo).toBe(12);
+        expect(r).toBe('foo');
+    });
 });
