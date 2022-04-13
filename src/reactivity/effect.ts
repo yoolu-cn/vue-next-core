@@ -87,8 +87,12 @@ export function trackEffects(dep: Dep) {
 
 export function trigger(target: any, key: any) {
     const depsMap = targetMap.get(target);
-    const dep = depsMap!.get(key);
-    triggerEffects(dep!);
+    if (!depsMap) {
+        // never been tracked
+        return;
+    }
+    const deps = depsMap!.get(key);
+    triggerEffects(deps!);
 }
 
 export function triggerEffects(dep: Dep) {
