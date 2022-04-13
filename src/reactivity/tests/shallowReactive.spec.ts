@@ -1,6 +1,6 @@
-import { isReactive, isShallow, reactive, shallowReactive, shallowReadonly } from '../reactive';
+import { isReactive, isShallow, reactive, shallowReactive, shallowReadonly } from '../src/reactive';
 
-import { effect } from '../effect';
+import { effect } from '../src/effect';
 /**
  * @todo
  * 1. 未实现集合

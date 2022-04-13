@@ -1,4 +1,4 @@
-import { ReactiveEffect } from './effect';
+import { ReactiveEffect } from '../effectt';
 
 export type Dep = Set<ReactiveEffect> & TrackedMarkers;
 
