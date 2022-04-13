@@ -13,6 +13,7 @@ class RefImpl<T> {
     private _rawValue: T;
 
     public dep?: Dep = undefined;
+    public readonly __is_ref = true;
 
     constructor(value: T) {
         this._value = toReactive(value);
@@ -54,4 +55,12 @@ export function ref<T>(value: T): Ref<T>;
 export function ref<T = any>(): Ref<T | undefined>;
 export function ref(value?: unknown) {
     return new RefImpl(value);
+}
+
+export function isRef(r: any): r is Ref {
+    return !!(r && r.__is_ref === true);
+}
+
+export function unref<T>(ref: T | Ref<T>): T {
+    return isRef(ref) ? (ref.value as any) : ref;
 }
