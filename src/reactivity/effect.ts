@@ -1,4 +1,5 @@
 import { extend } from '../shared';
+import { createDep } from './dep';
 
 export type EffectScheduler = (...args: any[]) => any;
 export interface ReactiveEffectOptions {
@@ -14,7 +15,7 @@ let shouldTrack: boolean;
 const targetMap = new Map<any, KeyToDepMap>();
 // const targetMap = new WeakMap();
 
-class ReactiveEffect<T = any> {
+export class ReactiveEffect<T = any> {
     deps: Dep[] = [];
     active = true;
     onStop?: () => void;
@@ -53,7 +54,7 @@ function clearupEffect(effect: ReactiveEffect) {
     });
 }
 
-function isTracking(): boolean {
+export function isTracking(): boolean {
     return shouldTrack && activeEffect !== undefined;
 }
 export function track(target: any, key: any) {
@@ -69,9 +70,13 @@ export function track(target: any, key: any) {
 
     let dep = depsMap.get(key);
     if (!dep) {
-        dep = new Set();
-        depsMap.set(key, dep);
+        depsMap.set(key, (dep = createDep()));
     }
+
+    trackEffects(dep);
+}
+
+export function trackEffects(dep: Dep) {
     if (dep.has(activeEffect!)) {
         return;
     }
@@ -83,7 +88,10 @@ export function track(target: any, key: any) {
 export function trigger(target: any, key: any) {
     const depsMap = targetMap.get(target);
     const dep = depsMap!.get(key);
+    triggerEffects(dep!);
+}
 
+export function triggerEffects(dep: Dep) {
     for (let effect of dep!) {
         if (effect.scheduler) {
             effect.scheduler();

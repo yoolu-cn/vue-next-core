@@ -1,3 +1,4 @@
+import { isObject } from '../shared';
 import {
     mutableHandlers,
     readonlyHandlers,
@@ -17,7 +18,7 @@ export interface Target {
     [ReactiveFlags.IS_SHALLOW]?: boolean;
 }
 
-export function reactive(target: object) {
+export function reactive(target: Record<any, any>): Record<any, any> {
     return createReactiveObject(target, false, mutableHandlers);
 }
 
@@ -51,4 +52,8 @@ export function isShallow(value: unknown): boolean {
 
 export function isProxy(value: unknown): boolean {
     return isReactive(value) || isReadonly(value);
+}
+
+export function toReactive<T extends unknown>(value: T): T {
+    return isObject(value) ? reactive(value) : value;
 }
