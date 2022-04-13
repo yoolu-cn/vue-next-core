@@ -1,4 +1,4 @@
-import { isProxy, isReactive, reactive } from '../reactive';
+import { isProxy, isReactive, reactive } from '../src/reactive';
 
 describe('reactivity/reactive', () => {
     it('should observe basic properties', () => {

@@ -1,4 +1,4 @@
-import { isReactive, isReadonly, isShallow, readonly, shallowReadonly } from '../reactive';
+import { isReactive, isReadonly, isShallow, readonly, shallowReadonly } from '../src/reactive';
 
 describe('reactivity/shallowReadonly', () => {
     test('should not make non-reactive properties reactive', () => {

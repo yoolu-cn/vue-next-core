@@ -1,7 +1,7 @@
-import { hasChanged } from '../shared';
+import { hasChanged } from '../../shared';
 import { createDep } from './dep';
 import { Dep, isTracking, trackEffects, triggerEffects } from './effect';
-import { isReactive, toReactive } from './reactive';
+import { isReactive, toRaw, toReactive } from './reactive';
 
 declare const RefSymbol: unique symbol;
 export interface Ref<T = any> {
@@ -39,17 +39,18 @@ type RefBase<T> = {
     value: T;
 };
 
-function trackRefValue(ref: RefBase<any>) {
+export function trackRefValue(ref: RefBase<any>) {
     if (isTracking()) {
+        ref = toRaw(ref);
         trackEffects(ref.dep || (ref.dep = createDep()));
     }
 }
 
-function triggerRefValue(ref: RefBase<any>) {
-    if (ref.dep) {
-        triggerEffects(ref.dep);
-    }
+export function triggerRefValue(ref: RefBase<any>) {
+    ref = toRaw(ref);
+    triggerEffects(ref.dep || (ref.dep = createDep()));
 }
+
 export function ref<T extends object>(value: T): [T] extends [Ref] ? T : Ref<T>;
 export function ref<T>(value: T): Ref<T>;
 export function ref<T = any>(): Ref<T | undefined>;

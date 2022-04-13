@@ -1,4 +1,5 @@
-import { extend } from '../shared';
+import { extend } from '../../shared';
+import { ComputedRefImpl } from './computed';
 import { createDep } from './dep';
 
 export type EffectScheduler = (...args: any[]) => any;
@@ -19,6 +20,7 @@ export class ReactiveEffect<T = any> {
     deps: Dep[] = [];
     active = true;
     onStop?: () => void;
+    computed?: ComputedRefImpl<T>;
     constructor(public fn: () => T, public scheduler?: Function) {}
 
     run() {

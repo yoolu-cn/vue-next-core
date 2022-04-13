@@ -1,4 +1,4 @@
-import { isObject } from '../shared';
+import { isObject } from '../../shared';
 import {
     mutableHandlers,
     readonlyHandlers,
@@ -10,12 +10,14 @@ export const enum ReactiveFlags {
     IS_REACTIVE = '__v_isReactive',
     IS_READONLY = '__v_isReadonly',
     IS_SHALLOW = '__v_isShallow',
+    RAW = '__v_raw',
 }
 
 export interface Target {
     [ReactiveFlags.IS_REACTIVE]?: boolean;
     [ReactiveFlags.IS_READONLY]?: boolean;
     [ReactiveFlags.IS_SHALLOW]?: boolean;
+    [ReactiveFlags.RAW]?: any;
 }
 
 export function reactive(target: Record<any, any>): Record<any, any> {
@@ -56,4 +58,9 @@ export function isProxy(value: unknown): boolean {
 
 export function toReactive<T extends unknown>(value: T): T {
     return isObject(value) ? reactive(value) : value;
+}
+
+export function toRaw<T>(observed: T): T {
+    const raw = observed && (observed as Target)[ReactiveFlags.RAW];
+    return raw ? toRaw(raw) : observed;
 }
