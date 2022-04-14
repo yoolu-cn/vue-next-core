@@ -2,9 +2,11 @@
   "name": "vue-next-core",
   "version": "1.0.0",
   "description": "实现最简 vue3 模型，用于深入学习 vue3， 让你更轻松的理解 vue3 的核心逻辑",
-  "main": "index.js",
+  "main": "lib/guide-vue-next-core.cjs.js",
+  "module": "lib/guide-vue-next-core.esm.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -24,9 +26,14 @@
     "@babel/core": "^7.17.9",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
+    "@rollup/plugin-typescript": "^8.3.2",
     "@types/jest": "^27.4.1",
     "babel-jest": "^27.5.1",
     "jest": "^27.5.1",
+    "tslib": "^2.3.1",
     "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "rollup": "^2.70.1"
   }
 }
