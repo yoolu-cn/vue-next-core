@@ -1,10 +1,59 @@
+import { ReactiveEffect } from '../reactivity/src/effect';
+import { EMPTY_OBJ } from '../shared';
+import { ComponentPublicInstance, PublicInstanceProxyHandlers } from './componentPublicInstance';
+
+export type Data = Record<string, unknown>;
+export interface ComponentInternalInstance {
+    type: any;
+    /**
+     * Vnode representing this component in its parent's vdom tree
+     */
+    vnode: any;
+    /**
+     * Root vnode of this component's own vdom tree
+     */
+    subTree: any;
+    /**
+     * Render effect instance
+     */
+    effect: ReactiveEffect;
+    /**
+     * The render function that returns vdom tree.
+     * @internal
+     */
+    render: any;
+    /**
+     * Resolved component registry, only for components with mixins or extends
+     * @internal
+     */
+    // components: Record<string, ConcreteComponent> | null;
+    proxy: ComponentPublicInstance | null;
+    /**
+     * This is the target for the public instance proxy. It also holds properties
+     * injected by user options (computed, methods etc.) and user-attached
+     * custom properties (via `this.x = ...`)
+     * @internal
+     */
+    ctx: Data;
+    /**
+     * setup related
+     * @internal
+     */
+    setupState: Data;
+}
 export function createComponentInstance(vnode: any) {
-    const component = {
+    const instance: ComponentInternalInstance = {
         vnode,
         type: vnode.type,
-        setupState: {},
+        setupState: EMPTY_OBJ,
+        ctx: EMPTY_OBJ,
+        effect: null!,
+        proxy: null,
+        subTree: null,
+        render: null,
     };
-    return component;
+    instance.ctx = { _: instance };
+    return instance;
 }
 
 export function setupComponent(instance: any) {
@@ -19,17 +68,7 @@ export function setupComponent(instance: any) {
 
 function setupStatefulComponent(instance: any) {
     const Component = instance.type;
-    instance.proxy = new Proxy(
-        {},
-        {
-            get(target, key) {
-                const { setupState } = instance;
-                if (key in setupState) {
-                    return setupState[key];
-                }
-            },
-        }
-    );
+    instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers);
 
     const { setup } = Component;
 
