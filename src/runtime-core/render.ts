@@ -1,5 +1,5 @@
 import { isObject } from '../shared';
-import { createComponentInstance, setupComponent } from './component';
+import { ComponentInternalInstance, createComponentInstance, setupComponent } from './component';
 
 export function render(vnode: any, container: any) {
     // patch
@@ -26,7 +26,7 @@ function processComponent(vnode: any, container: any) {
     mountComponent(vnode, container);
 }
 function mountElement(vnode: any, container: any) {
-    const el = document.createElement(vnode.type);
+    const el = (vnode.el = document.createElement(vnode.type));
 
     const { props, children } = vnode;
     if (typeof children === 'string') {
@@ -48,11 +48,13 @@ function mountChildren(children: any[], el: HTMLElement) {
 function mountComponent(vnode: any, container: any) {
     const instance = createComponentInstance(vnode);
     setupComponent(instance);
-    setupRenderEffect(instance, container);
+    setupRenderEffect(instance, vnode, container);
 }
-function setupRenderEffect(instance: { vnode: any; render?: any; proxy?: any }, container: any) {
+function setupRenderEffect(instance: ComponentInternalInstance, vnode: any, container: any) {
     const { proxy } = instance;
     const subTree = instance.render.call(proxy);
 
     patch(subTree, container);
+
+    vnode.el = subTree.el;
 }
