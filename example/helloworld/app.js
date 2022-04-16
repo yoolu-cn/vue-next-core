@@ -4,8 +4,9 @@ export const App = {
         return h(
             'div',
             { id: 'root', class: 'bg-gray' },
+            'hello, ' + this.msg
             // 'hello world'
-            [h('p', { class: 'red' }, 'hello'), h('p', { class: 'blue' }, 'world')]
+            // [h('p', { class: 'red' }, 'hello'), h('p', { class: 'blue' }, 'world')]
         );
     },
 
