@@ -50,8 +50,9 @@ function mountComponent(vnode: any, container: any) {
     setupComponent(instance);
     setupRenderEffect(instance, container);
 }
-function setupRenderEffect(instance: { vnode: any; render?: any }, container: any) {
-    const subTree = instance.render();
+function setupRenderEffect(instance: { vnode: any; render?: any; proxy?: any }, container: any) {
+    const { proxy } = instance;
+    const subTree = instance.render.call(proxy);
 
     patch(subTree, container);
 }
