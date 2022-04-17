@@ -1,6 +1,8 @@
-import { isObject } from '../shared';
+import { isReadonly } from '../reactivity/src/reactive';
+import { isObject, isOn } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { ComponentInternalInstance, createComponentInstance, setupComponent } from './component';
+import { patchEvent } from './event';
 
 export function render(vnode: any, container: any) {
     // patch
@@ -37,7 +39,12 @@ function mountElement(vnode: any, container: any) {
     }
     for (let key in props) {
         const val = props[key];
-        el.setAttribute(key, val);
+        if (isOn(key)) {
+            const event = key.slice(2).toLowerCase();
+            patchEvent(el, event, val);
+        } else {
+            el.setAttribute(key, val);
+        }
     }
     container.append(el);
 }
