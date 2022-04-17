@@ -16,3 +16,6 @@ export const hasOwn = (val: object, key: string | symbol): key is keyof typeof v
     hasOwnProperty.call(val, key);
 
 export const isString = (val: unknown): val is string => typeof val === 'string';
+
+const onRE = /^on[^a-z]/; // 匹配以 on 开头并且 on 后首字符不为 a-z
+export const isOn = (key: string) => onRE.test(key);
