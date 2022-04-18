@@ -1,5 +1,7 @@
+import { shallowReadonly } from '../reactivity/src';
 import { ReactiveEffect } from '../reactivity/src/effect';
 import { EMPTY_OBJ } from '../shared';
+import { initProps } from './componentProps';
 import { ComponentPublicInstance, PublicInstanceProxyHandlers } from './componentPublicInstance';
 
 export type Data = Record<string, unknown>;
@@ -59,10 +61,9 @@ export function createComponentInstance(vnode: any) {
 export function setupComponent(instance: any) {
     /**
      * @TODO
-     * initProps
      * initSlots
      */
-
+    initProps(instance, instance.vnode.props);
     setupStatefulComponent(instance);
 }
 
@@ -74,7 +75,7 @@ function setupStatefulComponent(instance: any) {
 
     if (setup) {
         // function Object
-        const setupResult = setup();
+        const setupResult = setup(shallowReadonly(instance.props));
 
         handleSetupResult(instance, setupResult);
     }
