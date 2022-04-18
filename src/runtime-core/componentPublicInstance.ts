@@ -13,9 +13,11 @@ export const publicPropertiesMap: PublicPropertiesMap = extend(Object.create(nul
 
 export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
     get({ _: instance }: any, key: string) {
-        const { setupState } = instance;
+        const { setupState, props } = instance;
         if (hasOwn(setupState, key)) {
             return setupState[key];
+        } else if (hasOwn(props, key)) {
+            return props[key];
         }
 
         const publicGetter = publicPropertiesMap[key];
