@@ -2,6 +2,9 @@ import { isObject, isString } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { Data } from './component';
 
+export const Fragment = Symbol('Fragment');
+export const Text = Symbol('Text');
+
 export type VNodeTypes = string | VNode;
 export type VNodeProps = Data;
 type VNodeChildAtom = VNode | string | number | boolean | null | undefined | void;
@@ -37,4 +40,8 @@ export function createVNode(type: any, props?: any, children?: any) {
 
 function getShapeFlag(type: any) {
     return isString(type) ? ShapeFlags.ELEMENT : ShapeFlags.STATEFUL_COMPONENT;
+}
+
+export function createTextVNode(value: string) {
+    return createVNode(Text, {}, value);
 }

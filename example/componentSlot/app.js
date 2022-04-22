@@ -1,4 +1,4 @@
-import { h } from '../../lib/guide-vue-next-core.esm.js';
+import { h, createTextVNode } from '../../lib/guide-vue-next-core.esm.js';
 import { Foo } from './foo.js';
 window.self = null;
 export const App = {
@@ -23,7 +23,10 @@ export const App = {
             Foo,
             {},
             {
-                header: ({ number }) => h('p', {}, 'header ' + number),
+                header: ({ number }) => [
+                    h('p', {}, 'header ' + number),
+                    createTextVNode('呀呀呀~'),
+                ],
                 footer: () => h('p', {}, 'footer'),
             }
         );
