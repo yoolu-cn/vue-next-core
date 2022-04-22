@@ -72,6 +72,9 @@ export interface ComponentInternalInstance {
 
     emit: EmitFn;
 }
+
+let currentInstance: any = null;
+
 export function createComponentInstance(vnode: any) {
     const instance: ComponentInternalInstance = {
         vnode,
@@ -104,10 +107,12 @@ function setupStatefulComponent(instance: any) {
     const { setup } = Component;
 
     if (setup) {
+        setCurrentInstance(instance);
         // function Object
         const setupResult = setup(shallowReadonly(instance.props), {
             emit: instance.emit,
         });
+        setCurrentInstance(null);
 
         handleSetupResult(instance, setupResult);
     }
@@ -129,4 +134,12 @@ function finishComponentSetup(instance: any) {
     if (Component.render) {
         instance.render = Component.render;
     }
+}
+
+export function getCurrentInstance(): any {
+    return currentInstance;
+}
+
+export function setCurrentInstance(instance: any) {
+    currentInstance = instance;
 }
