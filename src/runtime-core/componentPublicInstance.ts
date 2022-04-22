@@ -3,12 +3,14 @@ import { ComponentInternalInstance } from './component';
 
 export type ComponentPublicInstance = {
     $el: any;
+    $slots: any;
 };
 
 export type PublicPropertiesMap = Record<string, (i: ComponentInternalInstance) => any>;
 
 export const publicPropertiesMap: PublicPropertiesMap = extend(Object.create(null), {
     $el: (i: any) => i.vnode.el,
+    $slots: (i: any) => i.slots,
 });
 
 export const PublicInstanceProxyHandlers: ProxyHandler<any> = {

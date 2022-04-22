@@ -1,5 +1,4 @@
-import { isReadonly } from '../reactivity/src/reactive';
-import { isObject, isOn } from '../shared';
+import { isOn } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { ComponentInternalInstance, createComponentInstance, setupComponent } from './component';
 import { patchEvent } from './event';

@@ -1,9 +1,10 @@
 import { shallowReadonly } from '../reactivity/src';
 import { ReactiveEffect } from '../reactivity/src/effect';
 import { EMPTY_OBJ } from '../shared';
-import { emit } from './componentEmit';
+import { emit } from './componentEmits';
 import { initProps } from './componentProps';
 import { ComponentPublicInstance, PublicInstanceProxyHandlers } from './componentPublicInstance';
+import { initSlots, InternalSlots } from './componentSlots';
 
 export type Data = Record<string, unknown>;
 
@@ -67,6 +68,7 @@ export interface ComponentInternalInstance {
      * @internal
      */
     setupState: Data;
+    slots: InternalSlots;
 
     emit: EmitFn;
 }
@@ -81,6 +83,7 @@ export function createComponentInstance(vnode: any) {
         subTree: null,
         render: null,
         emit: null!,
+        slots: EMPTY_OBJ,
     };
     instance.ctx = { _: instance };
     instance.emit = emit.bind(null, instance);
@@ -89,11 +92,8 @@ export function createComponentInstance(vnode: any) {
 }
 
 export function setupComponent(instance: any) {
-    /**
-     * @TODO
-     * initSlots
-     */
     initProps(instance, instance.vnode.props);
+    initSlots(instance, instance.vnode.children);
     setupStatefulComponent(instance);
 }
 
