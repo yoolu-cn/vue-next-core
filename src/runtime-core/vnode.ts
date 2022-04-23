@@ -1,4 +1,4 @@
-import { isObject, isString } from '../shared';
+import { isArray, isObject, isString } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { Data } from './component';
 
@@ -26,12 +26,17 @@ export function createVNode(type: any, props?: any, children?: any) {
         props,
         children,
         shapeFlag: getShapeFlag(type),
+        el: null,
     } as VNode;
 
-    vnode.shapeFlag |= isString(children) ? ShapeFlags.TEXT_CHILDREN : ShapeFlags.ARRAY_CHILDREN;
+    if (isString(children)) {
+        vnode.shapeFlag |= ShapeFlags.TEXT_CHILDREN;
+    } else if (isArray(children)) {
+        vnode.shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
+    }
 
     if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-        if (isObject(vnode.children)) {
+        if (isObject(children)) {
             vnode.shapeFlag |= ShapeFlags.SLOTS_CHILDREN;
         }
     }
