@@ -68,25 +68,33 @@ export interface ComponentInternalInstance {
      * @internal
      */
     setupState: Data;
+    parent: ComponentInternalInstance | null;
     slots: InternalSlots;
+    /**
+     * Object containing values this component provides for its descendents
+     * @internal
+     */
+    provides: Data;
 
     emit: EmitFn;
 }
 
 let currentInstance: any = null;
 
-export function createComponentInstance(vnode: any) {
+export function createComponentInstance(vnode: any, parent: ComponentInternalInstance | null) {
     const instance: ComponentInternalInstance = {
         vnode,
         type: vnode.type,
-        setupState: EMPTY_OBJ,
-        ctx: EMPTY_OBJ,
+        setupState: {},
+        ctx: {},
         effect: null!,
         proxy: null,
         subTree: null,
         render: null,
         emit: null!,
-        slots: EMPTY_OBJ,
+        slots: {},
+        provides: parent ? parent.provides : {},
+        parent,
     };
     instance.ctx = { _: instance };
     instance.emit = emit.bind(null, instance);
