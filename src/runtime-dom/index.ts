@@ -4,7 +4,7 @@ import { isOn } from '../shared';
 
 export interface createRendererOptions {
     createElement: (type: string) => HTMLElement;
-    patchProp: (el: HTMLElement, key: string, val: unknown) => void;
+    patchProp: (el: HTMLElement, key: string, prevProp: unknown, nextProp: unknown) => void;
     insert: (el: HTMLElement, parent: HTMLElement) => void;
 }
 
@@ -12,12 +12,16 @@ function createElement(type: string): HTMLElement {
     return document.createElement(type);
 }
 
-function patchProp(el: HTMLElement, key: string, val: unknown): void {
+function patchProp(el: HTMLElement, key: string, prevProp: unknown, nextProp: unknown): void {
     if (isOn(key)) {
         const event = key.slice(2).toLowerCase();
-        patchEvent(el, event, val as EventListener);
+        patchEvent(el, event, nextProp as EventListener);
     } else {
-        el.setAttribute(key, val as string);
+        if (nextProp === undefined || nextProp === null) {
+            el.removeAttribute(key);
+        } else {
+            el.setAttribute(key, nextProp as string);
+        }
     }
 }
 
