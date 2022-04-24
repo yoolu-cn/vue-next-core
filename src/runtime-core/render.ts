@@ -1,5 +1,6 @@
 import { effect } from '../reactivity/src/effect';
 import { createRendererOptions } from '../runtime-dom';
+import { EMPTY_OBJ } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { ComponentInternalInstance, createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
@@ -49,7 +50,7 @@ export function createRenderer(options: createRendererOptions) {
         if (!n1) {
             mountElement(n2, container, parent);
         } else {
-            patchElement(n1, n2, container, parent);
+            patchElement(n1, n2, container);
         }
     }
 
@@ -85,23 +86,46 @@ export function createRenderer(options: createRendererOptions) {
         if (props) {
             for (const key in props) {
                 const val = props[key];
-
-                hostPatchProp(el, key, val);
+                hostPatchProp(el, key, null, val);
             }
         }
 
         hostInsert(el, container);
     }
-    function patchElement(
-        n1: any,
-        n2: any,
-        container: any,
-        parent: ComponentInternalInstance | null
-    ) {
+    function patchElement(n1: any, n2: any, container: any) {
         console.log('update element');
         console.log('n1', n1);
         console.log('n2', n2);
+        const el = (n2.el = n1.el);
+        const oldProps = n1.props || EMPTY_OBJ;
+        const newProps = n2.props || EMPTY_OBJ;
+        patchProps(el, oldProps, newProps);
     }
+
+    function patchProps(el: any, oldProps: any, newProps: any) {
+        /**
+         * @todo 这里有bug 对象之前判断永远不相等 除非 oldProps 和 newProps 都为 EMPTY_OBJ
+         */
+        if (oldProps !== newProps) {
+            for (const key in newProps) {
+                const prevProp = oldProps[key];
+                const nextProp = newProps[key];
+                if (prevProp !== nextProp) {
+                    hostPatchProp(el, key, prevProp, nextProp);
+                }
+            }
+            if (oldProps == EMPTY_OBJ) {
+                return;
+            }
+
+            for (const key in oldProps) {
+                if (!(key in newProps)) {
+                    hostPatchProp(el, key, oldProps[key], null);
+                }
+            }
+        }
+    }
+
     function mountChildren(
         children: any[],
         el: HTMLElement,

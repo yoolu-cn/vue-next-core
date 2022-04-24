@@ -1,4 +1,4 @@
-import { extend } from '../../shared';
+import { extend, isArray } from '../../shared';
 import { ComputedRefImpl } from './computed';
 import { createDep } from './dep';
 
@@ -94,11 +94,12 @@ export function trigger(target: any, key: any) {
         return;
     }
     const deps = depsMap!.get(key);
+
     triggerEffects(deps!);
 }
 
 export function triggerEffects(dep: Dep) {
-    for (let effect of dep!) {
+    for (let effect of isArray(dep) ? dep : [...dep]) {
         if (effect.scheduler) {
             effect.scheduler();
         } else {
