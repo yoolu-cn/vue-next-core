@@ -1,5 +1,6 @@
 import { shallowReadonly } from '../reactivity/src';
 import { ReactiveEffect } from '../reactivity/src/effect';
+import { proxyRefs } from '../reactivity/src/ref';
 import { EMPTY_OBJ } from '../shared';
 import { emit } from './componentEmits';
 import { initProps } from './componentProps';
@@ -75,6 +76,8 @@ export interface ComponentInternalInstance {
      * @internal
      */
     provides: Data;
+    // lifecycle
+    isMounted: boolean;
 
     emit: EmitFn;
 }
@@ -95,6 +98,7 @@ export function createComponentInstance(vnode: any, parent: ComponentInternalIns
         slots: {},
         provides: parent ? parent.provides : {},
         parent,
+        isMounted: false,
     };
     instance.ctx = { _: instance };
     instance.emit = emit.bind(null, instance);
@@ -130,7 +134,7 @@ function handleSetupResult(instance: any, setupResult: object | Function) {
     // TODO  function
 
     if (typeof setupResult === 'object') {
-        instance.setupState = setupResult;
+        instance.setupState = proxyRefs(setupResult);
     }
 
     finishComponentSetup(instance);
