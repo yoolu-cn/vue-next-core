@@ -11,6 +11,8 @@ export function createRenderer(options: createRendererOptions) {
         createElement: hostCreateElement,
         patchProp: hostPatchProp,
         insert: hostInsert,
+        remove: hostRemove,
+        setElementText: hostSetElementText,
     } = options;
 
     function render(vnode: any, container: any) {
@@ -50,7 +52,7 @@ export function createRenderer(options: createRendererOptions) {
         if (!n1) {
             mountElement(n2, container, parent);
         } else {
-            patchElement(n1, n2, container);
+            patchElement(n1, n2, container, parent);
         }
     }
 
@@ -92,14 +94,52 @@ export function createRenderer(options: createRendererOptions) {
 
         hostInsert(el, container);
     }
-    function patchElement(n1: any, n2: any, container: any) {
+    function patchElement(
+        n1: any,
+        n2: any,
+        container: any,
+        parent: ComponentInternalInstance | null
+    ) {
         console.log('update element');
         console.log('n1', n1);
         console.log('n2', n2);
         const el = (n2.el = n1.el);
         const oldProps = n1.props || EMPTY_OBJ;
         const newProps = n2.props || EMPTY_OBJ;
+        patchChildren(n1, n2, el, parent);
         patchProps(el, oldProps, newProps);
+    }
+
+    function patchChildren(
+        n1: any,
+        n2: any,
+        container: any,
+        parent: ComponentInternalInstance | null
+    ) {
+        const prevShapeFlag = n1.shapeFlag;
+        const { shapeFlag } = n2;
+        const c1 = n1.children;
+        const c2 = n2.children;
+        if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+            if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+                // 清空老的 children
+                unmountChildren(c1);
+            }
+            if (c1 !== c2) {
+                // 设置 text
+                hostSetElementText(container, c2);
+            }
+        } else {
+            if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+                // 清空老的 Text
+                hostSetElementText(container, '');
+                mountChildren(c2, container, parent);
+            } else {
+                // 清空老的 children
+                unmountChildren(c1);
+                mountChildren(c2, container, parent);
+            }
+        }
     }
 
     function patchProps(el: any, oldProps: any, newProps: any) {
@@ -134,6 +174,13 @@ export function createRenderer(options: createRendererOptions) {
         children.forEach((vnode: any) => {
             patch(null, vnode, el, parent);
         });
+    }
+
+    function unmountChildren(children: any[]) {
+        for (let i = 0, len = children.length; i < len; i++) {
+            const el = children[i].el;
+            hostRemove(el);
+        }
     }
     function mountComponent(vnode: any, container: any, parent: ComponentInternalInstance | null) {
         const instance = createComponentInstance(vnode, parent);
